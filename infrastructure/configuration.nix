@@ -6,8 +6,9 @@
 {
   imports = [];
 
-  # Minimal system
-  minimal.enable = true;
+  # Disable graphical interface
+  services.xserver.enable = false;
+  services.displayManager.enable = false;
 
   # Kernel & Boot
   boot = {
@@ -266,12 +267,12 @@
         echo ""
         echo "📊 Resources:"
         echo "─────────────────────────────────────────"
-        echo "Uptime: $(${pkgs.uptime}/bin/uptime -p)"
-        echo "Disk:   $(${pkgs.coreutils}/bin/df -h / | tail -1 | ${pkgs.gawk}/bin/awk '\''{print $5}'\'')"
-        echo "Memory: $(${pkgs.procps}/bin/free -h | grep Mem | ${pkgs.gawk}/bin/awk '\''{print $3 "/" $2}'\'')"
+        echo "Uptime: $($(/run/current-system/sw/bin/uptime -p))"
+        echo "Disk:   $(${pkgs.coreutils}/bin/df -h / | tail -1 | ${pkgs.gawk}/bin/awk '{print $5}')"
+        echo "Memory: $(${pkgs.procps}/bin/free -h | grep Mem | ${pkgs.gawk}/bin/awk '{print $3 \"/\" $2}')"
         echo ""
         sleep 5
-      done'
+      done
     '';
 
     serviceConfig = {
