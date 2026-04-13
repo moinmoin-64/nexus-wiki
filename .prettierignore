@@ -1,0 +1,10 @@
+.prettierignore
+node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+.nyc_output/
+*.min.js
+*.min.css

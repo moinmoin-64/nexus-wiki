@@ -1,0 +1,12 @@
+[Unit]
+Description=Project Nexus Weekly Update Timer
+Documentation=https://github.com/moinmoin-64/nexus-wiki
+
+[Timer]
+# Run every Monday at 02:00 UTC
+OnCalendar=Mon *-*-* 02:00:00
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

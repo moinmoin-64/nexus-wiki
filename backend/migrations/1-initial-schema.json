@@ -1,0 +1,16 @@
+{
+  "add": [
+    {
+      "version": 1,
+      "description": "Create core tables and users",
+      "action": "create",
+      "onComplete": "SELECT 1"
+    },
+    {
+      "version": 2,
+      "description": "Add authentication tables",
+      "action": "create",
+      "onComplete": "SELECT 1"
+    }
+  ]
+}

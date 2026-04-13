@@ -1,0 +1,88 @@
+# NixOS Build Artifacts
+result/
+result-*
+*.iso
+*.qcow2
+*.tar.gz
+
+# Development
+.dirlocal
+.envrc
+.nix-shell
+shell.nix
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+.env.production.local
+.secrets/
+secrets.json
+private_key*
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+
+# System
+.cache/
+.local/
+.nix-defexpr/
+
+# Build artifacts
+*.o
+*.a
+*.so
+target/
+dist/
+build/
+*.egg-info/
+
+# Temporary files
+*.tmp
+*.log
+temp/
+tmp/
+
+# CI/CD cache (but keep workflow files)
+.github/workflows/*.log
+!.github/workflows/*.yml
+!.github/workflows/*.yaml
+
+# Backups
+*.bak
+*.backup
+~*
+
+# Lock files (keep for reproducibility)
+!flake.lock
+!package-lock.json
+!yarn.lock
+!Cargo.lock
+
+# OS specific
+Thumbs.db
+.DS_Store
+ehthumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Release script artifacts (excluded from repo)
+/release-artifacts/
+*.release.tar.gz

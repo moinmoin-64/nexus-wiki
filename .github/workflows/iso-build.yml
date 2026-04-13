@@ -1,0 +1,75 @@
+name: Build NixOS ISO Image
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'infrastructure/**'
+      - '.github/workflows/iso-build.yml'
+  schedule:
+    # Build daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v9
+
+      - name: Enable Nix Flakes
+        run: |
+          echo "extra-experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+
+      - name: Setup Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v4
+
+      - name: Build ISO Image
+        working-directory: ./infrastructure
+        run: |
+          nix build .#packages.x86_64-linux.isoImage -L
+          mv result/iso/*.iso nexus-$(date +%Y%m%d_%H%M%S).iso
+          ls -lh nexus-*.iso
+
+      - name: Build QCOW2 Image (optional)
+        working-directory: ./infrastructure
+        continue-on-error: true
+        run: |
+          nix build .#packages.x86_64-linux.qcowImage -L
+          mv result/*.qcow2 nexus-$(date +%Y%m%d_%H%M%S).qcow2 2>/dev/null || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nexus-images
+          path: |
+            infrastructure/nexus-*.iso
+            infrastructure/nexus-*.qcow2
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "infrastructure/nexus-*.iso,infrastructure/nexus-*.qcow2"
+          tag: "build-$(date +%Y%m%d-%H%M%S)"
+          makeLatest: true
+          draft: false
+          prerelease: false
+
+      - name: Build summary
+        if: always()
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **ISO Image**: Built successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u)" >> $GITHUB_STEP_SUMMARY

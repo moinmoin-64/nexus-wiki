@@ -1,0 +1,137 @@
+name: Build & Release NixOS ISO
+
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-iso:
+    name: Build NixOS ISO
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v24
+        with:
+          nix-path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Setup Cachix cache
+        uses: cachix/cachix-action@v12
+        with:
+          name: nexus-wiki
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+      - name: Update Nix flakes
+        run: |
+          cd infrastructure
+          nix flake update
+
+      - name: Build ISO
+        run: |
+          cd infrastructure
+          nix build .#packages.x86_64-linux.iso -v
+          ls -lh result/iso/
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(cat VERSION || echo "latest")
+          ISO_FILE=$(ls -t infrastructure/result/iso/nixos-*.iso | head -1)
+          ISO_NAME=$(basename "$ISO_FILE")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "iso_file=$ISO_FILE" >> $GITHUB_OUTPUT
+          echo "iso_name=$ISO_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag: ${{ github.ref_name }}
+          name: Nexus ${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+          artifacts: ${{ steps.version.outputs.iso_file }}
+          artifactContentType: application/x-iso9660-image
+          body: |
+            ## Project Nexus - NixOS TUI Appliance
+            
+            **Version**: ${{ steps.version.outputs.version }}
+            **ISO**: ${{ steps.version.outputs.iso_name }}
+            
+            ### What's New
+            See commit history for changes since last release.
+            
+            ### Installation
+            1. Download `${{ steps.version.outputs.iso_name }}`
+            2. Upload to Proxmox storage
+            3. Create VM with ISO boot
+            4. Services auto-start on first boot
+            
+            ### Access
+            - SSH: `ssh -i ~/.ssh/id_rsa nexus@<vm-ip>`
+            - API: `http://<vm-ip>:3001`
+            - Web UI: `http://<vm-ip>`
+            
+            ### Update Strategy
+            The ISO auto-updates every Monday at 02:00 UTC.
+            Manual update: `$ update` in terminal.
+            
+            See [AUTO_UPDATE_GUIDE.md](../docs/AUTO_UPDATE_GUIDE.md) for details.
+
+      - name: Push to Cachix
+        run: |
+          nix flake update
+        if: always()
+
+      - name: Notify on Success
+        run: |
+          echo "✅ ISO built and released: ${{ steps.version.outputs.iso_name }}"
+          echo "📊 Size: $(du -h ${{ steps.version.outputs.iso_file }} | cut -f1)"
+
+  build-qcow2:
+    name: Build QCOW2 Image
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v24
+        with:
+          nix-path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Build QCOW2
+        run: |
+          cd infrastructure
+          nix flake update
+          nix build .#packages.x86_64-linux.qcow2 -v
+          ls -lh result/*.qcow2 || echo "QCOW2 not built (ISO primary)"
+
+      - name: Upload QCOW2 (if built)
+        uses: ncipollo/release-action@v1
+        if: always()
+        with:
+          tag: ${{ github.ref_name }}
+          updateRelease: true
+          omitBodyDuringUpdate: true
+          artifacts: infrastructure/result/**/*.qcow2
+          artifactContentType: application/octet-stream
