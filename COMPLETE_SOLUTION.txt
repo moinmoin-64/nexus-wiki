@@ -1,0 +1,122 @@
+# 🎯 AUFGABE LÖSUNG - Schritt für Schritt
+
+## Status: ✅ ALLES VORBEREITET
+
+Die NixOS-ISO wird gerade mit Passwort-SSH gebaut.
+Du hast alles für den kompletten Update-Prozess bekommen.
+
+---
+
+## 📋 Was wurde getan:
+
+1. ✅ SSH mit Passwort in NixOS-Konfiguration aktiviert
+2. ✅ `nixos`-Benutzer mit Passwort `nexus123` hinzugefügt
+3. ✅ v0.2.0 Release mit allen Fixes auf GitHub
+4. ✅ Update-Scripts für Windows (batch + PowerShell)
+5. ✅ Neue ISO wird gerade gebaut
+
+---
+
+## 🔐 NEUE SSH CREDENTIALS
+
+```
+Benutzer:  nixos
+Passwort:  nexus123
+IP:        192.168.178.116
+```
+
+---
+
+## 📝 KOMPLETTER ABLAUF:
+
+### Phase 1: ISO Vorbereitung (LÄUFT GERADE)
+
+Die ISO wird gebaut mit:
+- ✅ Passwort-SSH aktiviert
+- ✅ Frontend-Service auf Port 5173
+- ✅ Alle npm-Fixes
+- ✅ Komplette NixOS-Integration
+
+**Status:** Baue gerade... (ca. 10-20 Minuten)
+
+Prüfe später:
+```powershell
+ls "c:\Users\olist\Programmieren\wiki\infrastructure\result\iso\"
+```
+
+### Phase 2: Neue ISO Booten
+
+1. Kopiere die ISO-Datei
+2. Starte NixOS neu damit
+
+### Phase 3: SSH Verbindung
+
+```powershell
+ssh nixos@192.168.178.116
+# Passwort: nexus123 (eingeben)
+```
+
+### Phase 4: Update zu v0.2.0
+
+```bash
+# Auf dem NixOS-System:
+cd /opt/nexus
+git fetch origin v0.2.0
+git checkout v0.2.0
+```
+
+### Phase 5: Wiki Öffnen
+
+```
+Browser: http://192.168.178.116:5173
+Login:   demo / demo123
+```
+
+---
+
+## 🚀 SOFORT ACTIONS:
+
+### Jetzt (während ISO baut):
+
+1. Speichern der Credentials
+2. Warten auf ISO Build-Abschluss
+3. ISO downloaden
+
+### Nachher (nach Reboot):
+
+```powershell
+# Verbinde dich
+ssh nixos@192.168.178.116
+
+# Aktualisiere auf v0.2.0
+cd /opt/nexus && git fetch origin v0.2.0 && git checkout v0.2.0
+
+# Starten Sie die Wiki
+# Browser: http://192.168.178.116:5173
+```
+
+---
+
+## 📚 DATEIEN IM REPO:
+
+- `SSH_CREDENTIALS.txt` - Diese Credentials
+- `update-to-v0.2.0.bat` - Windows Update-Script
+- `update-to-v0.2.0.ps1` - PowerShell Variante
+- `START_HERE.md` - Quick-Start Guide
+- `infrastructure/configuration.nix` - SSH aktiviert
+
+---
+
+## ✅ ERGEBNIS:
+
+Nach den Schritten:
+- Wiki läuft auf Port 5173
+- Alle Services starten automatisch
+- Kompletter Zugang wita password SSH
+- v0.2.0 mit Frontend funktioniert
+
+---
+
+**DIE ISO WIRD GERADE FÜR DICH GEBAUT!** ⏳
+
+Sobald fertig → Neue Credentials nutzen → v0.2.0 updaten → Wiki läuft!
