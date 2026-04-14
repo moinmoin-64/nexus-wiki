@@ -1,0 +1,27 @@
+# SOFORT LÖSUNG - Passwort setzen
+
+Du bist JETZT auf dem NixOS-System angemeldet als `nixos`.
+
+## DIREKT EINGEBEN (auf deinem NixOS-Terminal):
+
+```bash
+sudo passwd nixos
+```
+
+Dann:
+```
+Neue UNIX-Passwort: nexus123
+UNIX-Passwort wiederholen: nexus123
+```
+
+## DANACH UPDATE:
+
+```bash
+cd /opt/nexus
+git fetch origin v0.2.0
+git checkout v0.2.0
+```
+
+## FERTIG!
+
+Wiki läuft auf: http://192.168.178.116:5173
