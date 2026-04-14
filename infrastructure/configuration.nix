@@ -29,7 +29,7 @@
       eth0.useDHCP = true;
     };
     firewall.enable = true;
-    firewall.allowedTCPPorts = [ 22 80 443 3001 7687 7474 5432 ];
+    firewall.allowedTCPPorts = [ 22 80 443 3001 5173 7687 7474 5432 ];
     firewall.allowedUDPPorts = [];
   };
 
@@ -178,6 +178,38 @@
     };
   };
 
+  # Nexus Frontend Service (Vue.js)
+  systemd.services.nexus-frontend = {
+    description = "Project Nexus Frontend UI";
+    after = [ "network.target" ];
+    wantedBy = [ "multi-user.target" ];
+    
+    preStart = ''
+      mkdir -p /opt/nexus/frontend
+      mkdir -p /var/log/nexus-frontend
+      chown -R nexus:nexus /opt/nexus/frontend /var/log/nexus-frontend
+    '';
+
+    script = ''
+      export VITE_API_BASE=http://localhost:3001
+      export HOST=0.0.0.0
+      export PORT=5173
+      cd /opt/nexus/frontend
+      ${pkgs.nodejs_18}/bin/npm run dev
+    '';
+
+    serviceConfig = {
+      Type = "simple";
+      User = "nexus";
+      Group = "nexus";
+      Restart = "always";
+      RestartSec = 10;
+      StandardOutput = "journal";
+      StandardError = "journal";
+      WorkingDirectory = "/opt/nexus/frontend";
+    };
+  };
+
   # Nexus Graph Mirror Service (Python)
   systemd.services.nexus-graph-mirror = {
     description = "Project Nexus Graph Mirror Service";
@@ -214,12 +246,29 @@
         server 127.0.0.1:3001;
       }
 
+      upstream frontend {
+        server 127.0.0.1:5173;
+      }
+
       server {
         listen 80;
         listen [::]:80;
         server_name _;
 
+        # Frontend - direct pass-through
         location / {
+          proxy_pass http://frontend;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # API routes
+        location /api {
           proxy_pass http://backend;
           proxy_http_version 1.1;
           proxy_set_header Upgrade $http_upgrade;
@@ -230,6 +279,7 @@
           proxy_set_header X-Forwarded-Proto $scheme;
         }
 
+        # WebSocket
         location /ws {
           proxy_pass http://backend;
           proxy_http_version 1.1;
