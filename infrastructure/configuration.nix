@@ -37,12 +37,22 @@
   time.timeZone = "UTC";
   services.chrony.enable = true;
 
-  # Users - NO passwd, key-based SSH only
+  # Users - Password and key-based SSH
   users = {
     mutableUsers = false;
     users = {
       root = {
         initialHashedPassword = "!";
+        openssh.authorizedKeys.keys = [];
+      };
+      nixos = {
+        isNormalUser = true;
+        home = "/home/nixos";
+        createHome = true;
+        extraGroups = [ "wheel" ];
+        shell = pkgs.bash;
+        # Password: nexus123
+        initialPassword = "nexus123";
         openssh.authorizedKeys.keys = [];
       };
       nexus = {
@@ -60,15 +70,15 @@
     groups.nexus = {};
   };
 
-  # SSH - Hardened
+  # SSH - Enabled with password and key auth
   services.openssh = {
     enable = true;
     settings = {
-      PasswordAuthentication = false;
+      PasswordAuthentication = true;
       PubkeyAuthentication = true;
       PermitRootLogin = "no";
       X11Forwarding = false;
-      AllowUsers = "nexus";
+      AllowUsers = "nixos nexus";
     };
     ports = [ 22 ];
   };
